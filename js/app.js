@@ -880,22 +880,41 @@
            (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
   }
 
-  function canOfferInstall() { return !isStandalone() && (deferredPrompt || isIOS()); }
+  var UA = navigator.userAgent;
 
-  function iosHint() {
-    return 'Tap the Share button' + (isIOS() ? ' ↑' : '') +
-           ' at the bottom of Safari, then "Add to Home Screen".';
+  function isAndroid() { return /android/i.test(UA); }
+
+  /* Chrome only fires beforeinstallprompt when it feels like it — not on a
+     first visit, not for a while after someone dismisses it, and never in a
+     browser that doesn't implement it. Leaving those people with no button and
+     no instructions is what made this look broken, so every case below ends in
+     something they can actually do. */
+  function manualSteps() {
+    if (isIOS()) {
+      // Only Safari can add to the iOS Home Screen; other iOS browsers can't.
+      return /crios|fxios|edgios|opera|opt\//i.test(UA)
+        ? 'On iPhone only Safari can do this. Open this page in Safari, then tap Share and "Add to Home Screen".'
+        : 'Tap the Share button at the bottom of Safari, then "Add to Home Screen".';
+    }
+    if (isAndroid()) {
+      if (/samsungbrowser/i.test(UA)) return 'Tap the menu (☰), then "Add page to" → "Home screen".';
+      if (/firefox|fxios/i.test(UA))  return 'Tap the menu (⋮), then "Install" or "Add to Home screen".';
+      return 'Tap the menu (⋮) at the top right, then "Add to Home screen" — or "Install app" if you see it.';
+    }
+    return 'In Chrome, use the install icon in the address bar, or the menu (⋮) → "Cast, save and share" → "Install page as app".';
   }
+
+  function canOfferInstall() { return !isStandalone(); }
 
   function updateInstallUI() {
     var bar = $('#installBar');
-    var show = canOfferInstall() && !state.installDismissed;
+    var show = canOfferInstall() && !state.installDismissed && (deferredPrompt || isIOS() || isAndroid());
 
     if (show) {
       $('#installGo').hidden = !deferredPrompt;
       $('#installBody').textContent = deferredPrompt
         ? "Works with no signal, and it's the only way to get set reminders."
-        : iosHint();
+        : manualSteps();
     }
     bar.hidden = !show;
     document.body.classList.toggle('has-installbar', show);
@@ -906,22 +925,40 @@
     var note = $('#installState');
     if (note) {
       note.textContent = isStandalone()
-        ? 'Installed. You are running the home-screen version.'
+        ? "Installed — you're running the home-screen version."
         : deferredPrompt
-          ? 'Opens full-screen and works offline.'
-          : isIOS()
-            ? iosHint() + ' Reminders only fire from the installed version.'
-            : 'Open this page on your phone to install it.';
+          ? 'Opens full-screen and works offline. Tap Install.'
+          : manualSteps() + (isIOS() ? ' On iPhone, reminders only work from the installed version.' : '');
+    }
+
+    /* If installing still fails, this says which precondition is missing
+       instead of leaving it a mystery. */
+    var diag = $('#installDiag');
+    if (diag) {
+      if (isStandalone()) { diag.textContent = ''; return; }
+      var bits = [];
+      bits.push(location.protocol === 'https:' || location.hostname === 'localhost'
+        ? 'secure ✓' : 'NOT secure — install needs https');
+      bits.push(navigator.serviceWorker && navigator.serviceWorker.controller
+        ? 'offline copy ✓' : 'offline copy still loading — wait a moment and reopen this');
+      bits.push(deferredPrompt ? 'one-tap install ready'
+        : isIOS() ? 'iPhone: menu only, no one-tap'
+        : "no one-tap yet (your browser decides when to offer it) — the menu always works");
+      diag.textContent = bits.join(' · ');
     }
   }
 
   function doInstall() {
-    if (!deferredPrompt) { toast(iosHint()); return; }
+    if (!deferredPrompt) { toast('Use your browser menu — see the steps above'); return; }
     var p = deferredPrompt;
-    deferredPrompt = null;
     p.prompt();
     p.userChoice.then(function (res) {
-      if (res && res.outcome === 'accepted') toast('Installed — open it from your home screen');
+      if (res && res.outcome === 'accepted') {
+        deferredPrompt = null;
+        toast('Installed — open it from your home screen');
+      }
+      // Keep the stashed prompt when they say no, so the button still works if
+      // they change their mind. Chrome won't hand us a second one.
       updateInstallUI();
       syncSheet();
     }).catch(function () { updateInstallUI(); });

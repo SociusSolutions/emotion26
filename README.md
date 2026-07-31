@@ -91,11 +91,18 @@ or as [one zip](https://sociussolutions.github.io/emotion26/assets/screenshots/e
 
 **Install to the phone**
 
-- A dismissible banner offers to add the app to the home screen. On Android it
-  is a one-tap install; on iOS it spells out the Safari Share → Add to Home
-  Screen steps, since Safari gives a page no way to trigger that itself.
-- Dismissing the banner doesn't lose it — the same offer lives in Settings.
-- It hides itself once the app is running from the home screen.
+- A dismissible banner offers to add the app to the home screen, and the same
+  offer lives in Settings so dismissing it doesn't lose it. Both disappear once
+  the app is running from the home screen.
+- Chrome only hands a page its one-tap install prompt when it feels like it —
+  not on a first visit, not for a while after someone dismisses it, and never
+  in a browser that doesn't implement it. So the banner **always** ends in
+  something actionable: the one-tap button when it's available, and otherwise
+  the exact menu path for that browser (Chrome ⋮, Samsung ☰, Firefox ⋮, Safari
+  Share). Opened in Chrome on an iPhone it says to switch to Safari, because
+  only Safari can add to the iOS Home Screen.
+- Settings also prints a one-line diagnostic — secure context, offline copy
+  ready, one-tap available — so a failure names the missing piece.
 
 **Works with no signal**
 
