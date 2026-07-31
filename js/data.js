@@ -39,8 +39,8 @@ const FESTIVAL = {
      bumping it is also what pushes the update out to phones.
      `updated` is UTC (the trailing Z matters); each phone shows it in
      local time. -------------------------------------------------------- */
-  version: '1.8',
-  updated: '2026-07-31T23:30:00Z',
+  version: '1.9',
+  updated: '2026-07-31T23:50:00Z',
 
   /* ---- CHANGE THE DATES HERE ---------------------------------------- */
   days: [
