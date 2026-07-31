@@ -74,6 +74,10 @@
 
   var STORE_KEY = 'emotion26.v1';
 
+  /* The stages that existed when filters were stored as a shown-list. Only used
+     to migrate those old saves; don't add to it. */
+  var STAGES_V1 = ['main', 'tree', 'ocul', 'noto', 'oil'];
+
   var state = {
     day: FESTIVAL.days[0].id,
     view: 'stages',
@@ -96,7 +100,23 @@
       ['day', 'view', 'notify', 'lead', 'theme', 'clock', 'hidePast', 'installDismissed'].forEach(function (k) {
         if (saved[k] !== undefined) state[k] = saved[k];
       });
-      if (Array.isArray(saved.stages) && saved.stages.length) state.stages = saved.stages;
+      /* Stage filters are stored as what's HIDDEN, not what's shown, so a stage
+         added after someone last opened the app is visible to them instead of
+         silently filtered out. `saved.stages` is the old shown-list format:
+         migrate it by hiding only the stages that existed back then and were
+         switched off. */
+      var hidden = null;
+      if (Array.isArray(saved.hidden)) {
+        hidden = saved.hidden;
+      } else if (Array.isArray(saved.stages) && saved.stages.length) {
+        hidden = STAGES_V1.filter(function (id) { return saved.stages.indexOf(id) === -1; });
+      }
+      if (hidden) {
+        var shown = FESTIVAL.stages
+          .map(function (s) { return s.id; })
+          .filter(function (id) { return hidden.indexOf(id) === -1; });
+        if (shown.length) state.stages = shown;
+      }
       if (saved.picks) {
         // drop picks whose set no longer exists (schedule edited)
         Object.keys(saved.picks).forEach(function (id) {
@@ -108,8 +128,12 @@
 
   function save() {
     try {
+      var hidden = FESTIVAL.stages
+        .map(function (s) { return s.id; })
+        .filter(function (id) { return state.stages.indexOf(id) === -1; });
+
       localStorage.setItem(STORE_KEY, JSON.stringify({
-        day: state.day, view: state.view, stages: state.stages, picks: state.picks,
+        day: state.day, view: state.view, hidden: hidden, picks: state.picks,
         notify: state.notify, lead: state.lead, theme: state.theme,
         clock: state.clock, hidePast: state.hidePast,
         installDismissed: state.installDismissed
@@ -1022,6 +1046,16 @@
   if ('serviceWorker' in navigator && location.protocol !== 'file:') {
     window.addEventListener('load', function () {
       navigator.serviceWorker.register('sw.js').catch(function () {});
+    });
+
+    /* A new worker taking over means the cached app itself changed. Reload once
+       so the running page isn't an old build reading a new schedule. Guarded,
+       because a reload loop here would be miserable to debug in a field. */
+    var reloaded = false;
+    navigator.serviceWorker.addEventListener('controllerchange', function () {
+      if (reloaded) return;
+      reloaded = true;
+      location.reload();
     });
   }
 })();
