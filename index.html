@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0e0b16">
+<meta name="description" content="Emotion 26 festival schedule — all stages, star your sets, get reminders.">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Emotion 26">
+<title>Emotion 26 — Schedule</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="assets/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="assets/icon-180.png">
+<link rel="stylesheet" href="css/app.css">
+</head>
+<body>
+
+<header class="app-head">
+  <div class="head-row">
+    <div class="brand" id="brand">Emotion 26</div>
+    <button class="clock" id="clock" title="Jump to what's on now" aria-label="Jump to what's on now"></button>
+    <button class="icon-btn" id="searchToggle" aria-pressed="false" aria-label="Search artists">🔍</button>
+  </div>
+
+  <div class="searchwrap" id="searchWrap">
+    <input type="search" id="search" placeholder="Search artists…" autocomplete="off"
+           enterkeyhint="search" aria-label="Search artists">
+  </div>
+
+  <div class="days" id="days" role="tablist" aria-label="Festival day"></div>
+
+  <div class="filters" id="stageFilters" aria-label="Filter by stage"></div>
+</header>
+
+<section class="nowbar" id="nowbar" hidden>
+  <h2 id="nowTitle">On now</h2>
+  <div class="now-scroll" id="nowScroll"></div>
+</section>
+
+<main id="view" aria-live="polite"></main>
+
+<nav class="tabbar" role="tablist" aria-label="Views">
+  <button data-view="stages"   role="tab" aria-selected="true"><span class="ic">🎪</span>Stages</button>
+  <button data-view="timeline" role="tab" aria-selected="false"><span class="ic">🕒</span>Timeline</button>
+  <button data-view="mine"     role="tab" aria-selected="false"><span class="ic">⭐</span>My Picks<span class="pill" id="pickCount" hidden>0</span></button>
+  <button data-view="settings" role="tab" aria-selected="false"><span class="ic">⚙️</span>Settings</button>
+</nav>
+
+<div class="sheet-back" id="sheetBack" hidden>
+  <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="sheetTitle">
+    <div class="grab"></div>
+    <h2 id="sheetTitle">Settings</h2>
+
+    <h3>Reminders</h3>
+    <div class="row">
+      <div class="lbl">Notify me before my sets
+        <small id="notifyState">Off</small>
+      </div>
+      <button class="switch" id="notifyToggle" aria-pressed="false" aria-label="Enable reminders"></button>
+    </div>
+    <div class="row">
+      <div class="lbl">Heads-up time</div>
+      <div class="seg" id="leadSeg" role="group" aria-label="Reminder lead time">
+        <button data-lead="5"  aria-pressed="false">5m</button>
+        <button data-lead="10" aria-pressed="true">10m</button>
+        <button data-lead="15" aria-pressed="false">15m</button>
+        <button data-lead="30" aria-pressed="false">30m</button>
+      </div>
+    </div>
+    <p class="note" id="notifyNote">
+      Reminders fire from this page, so keep it open — or add it to your home screen
+      (Share → Add to Home Screen) and leave it running in the background.
+    </p>
+    <button class="btn" id="testNotify">Send a test reminder</button>
+
+    <h3>Display</h3>
+    <div class="row">
+      <div class="lbl">Theme</div>
+      <div class="seg" id="themeSeg" role="group" aria-label="Theme">
+        <button data-theme="dark"  aria-pressed="true">Dark</button>
+        <button data-theme="light" aria-pressed="false">Light</button>
+      </div>
+    </div>
+    <div class="row">
+      <div class="lbl">Hide sets that already ended
+        <small>Keeps today's list short</small>
+      </div>
+      <button class="switch" id="hidePastToggle" aria-pressed="false" aria-label="Hide past sets"></button>
+    </div>
+    <div class="row">
+      <div class="lbl">Clock
+        <small>12-hour or 24-hour</small>
+      </div>
+      <div class="seg" id="clockSeg" role="group" aria-label="Clock format">
+        <button data-clock="12" aria-pressed="true">12h</button>
+        <button data-clock="24" aria-pressed="false">24h</button>
+      </div>
+    </div>
+
+    <h3>My picks</h3>
+    <button class="btn primary" id="shareBtn">Share my schedule</button>
+    <button class="btn" id="copyTextBtn">Copy as plain text</button>
+    <button class="btn danger" id="clearBtn">Clear all picks</button>
+    <p class="note" id="storeNote"></p>
+
+    <button class="btn" id="closeSheet" style="margin-top:20px">Done</button>
+  </div>
+</div>
+
+<div id="toast" role="status" aria-live="polite"></div>
+
+<script src="js/data.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
