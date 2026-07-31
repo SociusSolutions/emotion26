@@ -4,7 +4,23 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#0e0b16">
-<meta name="description" content="Emotion 26 festival schedule — all stages, star your sets, get reminders.">
+<meta name="description" content="Emotion 26 — the full three-day, five-stage lineup. Star your sets, get a heads-up before each one, works with no signal.">
+
+<!-- Link previews. og:image must be an absolute URL or scrapers ignore it. -->
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Emotion 26">
+<meta property="og:title" content="Emotion 26 — Festival Schedule">
+<meta property="og:description" content="Fri–Sun, August 28–30 2026. Five stages, 135 sets. Star the ones you want and get a heads-up before each starts. Works with no signal.">
+<meta property="og:url" content="https://sociussolutions.github.io/emotion26/">
+<meta property="og:image" content="https://sociussolutions.github.io/emotion26/assets/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Emotion 26 — full lineup, five stages, August 28 to 30 2026.">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Emotion 26 — Festival Schedule">
+<meta name="twitter:description" content="Five stages, 135 sets. Star the ones you want and get a heads-up before each starts.">
+<meta name="twitter:image" content="https://sociussolutions.github.io/emotion26/assets/og.png">
+
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Emotion 26">
@@ -39,6 +55,18 @@
 </section>
 
 <main id="view" aria-live="polite"></main>
+
+<div class="installbar" id="installBar" hidden>
+  <div class="ib-icon" aria-hidden="true">
+    <img src="assets/icon-192.png" alt="" width="44" height="44">
+  </div>
+  <div class="ib-text">
+    <strong id="installTitle">Add to your home screen</strong>
+    <span id="installBody">Works with no signal, and it's the only way to get set reminders.</span>
+  </div>
+  <button class="ib-go" id="installGo" hidden>Install</button>
+  <button class="ib-x" id="installClose" aria-label="Dismiss">✕</button>
+</div>
 
 <nav class="tabbar" role="tablist" aria-label="Views">
   <button data-view="stages"   role="tab" aria-selected="true"><span class="ic">🎪</span>Stages</button>
@@ -96,6 +124,14 @@
         <button data-clock="12" aria-pressed="true">12h</button>
         <button data-clock="24" aria-pressed="false">24h</button>
       </div>
+    </div>
+
+    <h3>This app</h3>
+    <div class="row">
+      <div class="lbl">Add to home screen
+        <small id="installState">Opens full-screen, works offline, and reminders only fire from here on iPhone.</small>
+      </div>
+      <div class="seg"><button id="installFromSettings" hidden>Install</button></div>
     </div>
 
     <h3>My picks</h3>
