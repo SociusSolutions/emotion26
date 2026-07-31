@@ -65,8 +65,10 @@
   var SETS_BY_ID = {};
   SETS.forEach(function (s) { SETS_BY_ID[s.id] = s; });
 
-  var STAGE_BY_ID = {};
-  FESTIVAL.stages.forEach(function (s) { STAGE_BY_ID[s.id] = s; });
+  var STAGE_BY_ID = {}, STAGE_ORDER = {};
+  FESTIVAL.stages.forEach(function (s, i) { STAGE_BY_ID[s.id] = s; STAGE_ORDER[s.id] = i; });
+
+  function byStageOrder(a, b) { return STAGE_ORDER[a.stageId] - STAGE_ORDER[b.stageId]; }
 
   /* ---------------------------------------------------------------------
      Persisted state
@@ -592,6 +594,12 @@
     }
 
     $('#nowTitle').textContent = title;
+
+    /* Always Main, Treehouse, Oculary, Notown, Midnight Oil, Workshops — the
+       order of the stage chips and of the sections below. A strip that
+       reshuffles itself every time a set changes is unreadable at a glance. */
+    live.sort(byStageOrder);
+
     live.forEach(function (s) {
       var c = el('button', 'now-card');
       c.style.setProperty('--sc', s.stage.color);
