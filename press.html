@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0e0b16">
+<meta name="robots" content="noindex">
+<meta name="description" content="Downloadable screenshots and share card for the Emotion 26 schedule app.">
+<title>Emotion 26 — Screenshots</title>
+<link rel="icon" href="assets/icon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="css/app.css">
+<style>
+  body { padding: 0 0 60px; }
+  .wrap { max-width: 1040px; margin: 0 auto; padding: 0 18px; }
+
+  header.press {
+    padding: 34px 0 6px;
+  }
+  header.press h1 {
+    font-size: 30px; font-weight: 900; letter-spacing: -.01em; margin: 0 0 8px;
+    background: linear-gradient(92deg, #ff7eb6, #ffc45c, #6ee7a8, #5ccfee, #b28dff);
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+  }
+  header.press p { color: var(--text-dim); margin: 0 0 4px; font-size: 15px; }
+  header.press a.home { color: #5ccfee; }
+
+  .allbtn {
+    display: inline-flex; align-items: center; gap: 10px;
+    margin: 20px 0 6px; padding: 14px 22px; border-radius: 12px;
+    background: linear-gradient(135deg, #ff7eb6, #b28dff); color: #fff;
+    font-weight: 800; text-decoration: none; min-height: var(--tap);
+  }
+  .hint { font-size: 13px; color: var(--text-dimmer); margin: 8px 0 0; }
+
+  h2.sec {
+    font-size: 12px; letter-spacing: .12em; text-transform: uppercase;
+    color: var(--text-dimmer); margin: 40px 0 14px;
+  }
+
+  .gallery { display: grid; gap: 18px; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); }
+  .gallery.wide { grid-template-columns: 1fr; max-width: 660px; }
+
+  figure {
+    margin: 0; background: var(--card); border: 1px solid var(--line);
+    border-radius: 15px; overflow: hidden; display: flex; flex-direction: column;
+  }
+  figure .shot { background: #08060f; display: block; }
+  figure .shot img { display: block; width: 100%; height: auto; }
+  figcaption { padding: 13px 14px 14px; display: flex; flex-direction: column; gap: 3px; }
+  figcaption .t { font-size: 15px; font-weight: 800; }
+  figcaption .d { font-size: 12.5px; color: var(--text-dim); line-height: 1.4; }
+  figcaption .m { font-size: 11.5px; color: var(--text-dimmer); font-variant-numeric: tabular-nums; }
+
+  .dl {
+    margin-top: 10px; display: inline-flex; align-items: center; justify-content: center; gap: 7px;
+    padding: 10px 14px; border-radius: 10px;
+    background: var(--card-2); border: 1px solid var(--line);
+    color: var(--text); text-decoration: none; font-size: 14px; font-weight: 700;
+    min-height: var(--tap);
+  }
+  .dl:hover { border-color: var(--text-dim); }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="press">
+    <h1>Emotion 26 — screenshots</h1>
+    <p>Everything below is free to repost. Right-click to copy, or use the download buttons.</p>
+    <p><a class="home" href="./">← back to the schedule</a></p>
+
+    <a class="allbtn" href="assets/screenshots/emotion26-screenshots.zip" download>
+      ⬇ Download all (7 files, 1.8&nbsp;MB)
+    </a>
+    <p class="hint">Phone screenshots are 1170&nbsp;×&nbsp;2532 (iPhone-sized, 3× density) so they stay sharp when posted.</p>
+  </header>
+
+  <h2 class="sec">Share card</h2>
+  <div class="gallery wide">
+    <figure>
+      <span class="shot"><img src="assets/og.png" alt="Emotion 26 share card: festival name, dates and the five stage names."></span>
+      <figcaption>
+        <span class="t">Link preview card</span>
+        <span class="d">Shown automatically when the link is pasted into a chat or a post. Also fine as a standalone graphic.</span>
+        <span class="m">PNG · 1200 × 630</span>
+        <a class="dl" href="assets/og.png" download>⬇ Download</a>
+      </figcaption>
+    </figure>
+  </div>
+
+  <h2 class="sec">The app</h2>
+  <div class="gallery" id="gallery"></div>
+
+</div>
+
+<script>
+  var SHOTS = [
+    ['1-stages',       'Stages',           "The day split by stage. What's playing right now is outlined in green."],
+    ['2-timeline',     'Timeline',         'Every stage merged into one chronological list — the planning view.'],
+    ['3-mypicks',      'My Picks',         'Starred sets in time order across all three days, with overlaps flagged as clashes.'],
+    ['4-settings',     'Settings',         'Reminder lead time, dark/light, 12/24-hour clock, share and export.'],
+    ['5-install',      'Install (Android)','The add-to-home-screen banner with its one-tap install button.'],
+    ['5b-install-ios', 'Install (iPhone)', 'The same banner on iOS, spelling out the Safari Share steps.']
+  ];
+
+  document.getElementById('gallery').innerHTML = SHOTS.map(function (s) {
+    var src = 'assets/screenshots/' + s[0] + '.png';
+    return '<figure>' +
+      '<span class="shot"><img loading="lazy" src="' + src + '" alt="' + s[1] + ' screen of the Emotion 26 app."></span>' +
+      '<figcaption>' +
+        '<span class="t">' + s[1] + '</span>' +
+        '<span class="d">' + s[2] + '</span>' +
+        '<span class="m">PNG · 1170 × 2532</span>' +
+        '<a class="dl" href="' + src + '" download>⬇ Download</a>' +
+      '</figcaption></figure>';
+  }).join('');
+</script>
+</body>
+</html>

@@ -12,6 +12,10 @@ folder you can drop on any static host.
 |---|---|---|
 | ![Stages view](assets/screenshots/1-stages.png) | ![Timeline view](assets/screenshots/2-timeline.png) | ![My Picks view](assets/screenshots/3-mypicks.png) |
 
+All screenshots and the share card are downloadable from
+**[/press](https://sociussolutions.github.io/emotion26/press.html)**, individually
+or as [one zip](https://sociussolutions.github.io/emotion26/assets/screenshots/emotion26-screenshots.zip).
+
 ## What it does
 
 **Browse**
