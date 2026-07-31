@@ -170,6 +170,12 @@ If any of it is wrong, the fix is a one-line edit in `js/data.js`.
 Notown has no Friday programme on the flyer, so it simply doesn't appear on
 Friday.
 
+## Credits
+
+Developed by **Randal Boiteau** / DJ Alphagroove — djalpha@gmail.com
+
+Line-up and workshop times transcribed from the printed Emotion 26 schedules.
+
 ## Files
 
 ```
