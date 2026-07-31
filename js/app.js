@@ -771,6 +771,7 @@
     $('#hidePastToggle').setAttribute('aria-pressed', String(state.hidePast));
 
     updateInstallUI();
+    syncQR();
 
     var n = Object.keys(state.picks).length;
     $('#storeNote').textContent = n
@@ -788,9 +789,87 @@
      Share / export
      ------------------------------------------------------------------- */
 
-  function shareUrl() {
-    return location.origin + location.pathname + '#s=' + encodePicks();
+  function appUrl() {
+    return location.origin + location.pathname;
   }
+
+  function shareUrl() {
+    return appUrl() + '#s=' + encodePicks();
+  }
+
+  /* ---------------------------------------------------------------------
+     QR code. Drawn locally rather than fetched from an image service, so it
+     still appears in a field with no signal — which is exactly when someone
+     leans over and asks how to get the schedule.
+     ------------------------------------------------------------------- */
+
+  var qrMode = 'app';        // 'app' = the schedule, 'mine' = my picks
+  var qrCache = {};          // text -> matrix, so re-rendering is instant
+
+  function qrText() {
+    return qrMode === 'mine' && Object.keys(state.picks).length ? shareUrl() : appUrl();
+  }
+
+  function qrMatrix(text) {
+    if (!qrCache[text]) qrCache[text] = (window.QR ? QR.encode(text) : null);
+    return qrCache[text];
+  }
+
+  function paintQR(canvas, text) {
+    var m = qrMatrix(text);
+    var ctx = canvas.getContext('2d');
+    if (!m) {
+      canvas.width = canvas.height = 1;
+      ctx.fillStyle = '#fff';
+      ctx.fillRect(0, 0, 1, 1);
+      return false;
+    }
+
+    // One canvas pixel per module plus a 4-module quiet zone; CSS scales it up
+    // with pixelated rendering, which keeps the edges hard at any size.
+    var quiet = 4, n = m.size + quiet * 2;
+    canvas.width = canvas.height = n;
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, n, n);
+    ctx.fillStyle = '#000000';
+    for (var y = 0; y < m.size; y++) {
+      for (var x = 0; x < m.size; x++) {
+        if (m.modules[y][x]) ctx.fillRect(x + quiet, y + quiet, 1, 1);
+      }
+    }
+    return true;
+  }
+
+  function syncQR() {
+    var text = qrText();
+    var ok = paintQR($('#qrCanvas'), text);
+    var picks = Object.keys(state.picks).length;
+
+    $('#qrUrl').textContent = ok ? text : '';
+    $('#qrCap').textContent = !ok
+      ? 'That is too much to fit in a code — share the link instead.'
+      : qrMode === 'mine'
+        ? (picks
+            ? 'Scan to load a copy of your ' + picks + ' picked set' + (picks === 1 ? '' : 's') + '.'
+            : 'Nothing picked yet, so this opens the schedule. Star some sets first.')
+        : 'Point a phone camera at this to open the schedule.';
+
+    document.querySelectorAll('#qrSeg button').forEach(function (b) {
+      b.setAttribute('aria-pressed', String(b.dataset.qr === qrMode));
+    });
+    $('#qrCanvas').setAttribute('aria-label',
+      'QR code linking to ' + (qrMode === 'mine' && picks ? 'a shared schedule' : 'the festival schedule'));
+  }
+
+  function openQRFull() {
+    var text = qrText();
+    if (!paintQR($('#qrFullCanvas'), text)) return toast('Too long to show as a code');
+    $('#qrFullCap').textContent = qrMode === 'mine' && Object.keys(state.picks).length
+      ? 'Scan to load this schedule' : 'Scan to open the Emotion 26 schedule';
+    $('#qrFull').hidden = false;
+  }
+
+  function closeQRFull() { $('#qrFull').hidden = true; }
 
   function asText() {
     var picks = pickedSets();
@@ -929,6 +1008,27 @@
       });
     });
 
+    document.querySelectorAll('#qrSeg button').forEach(function (b) {
+      b.addEventListener('click', function () {
+        qrMode = b.dataset.qr;
+        if (qrMode === 'mine' && !Object.keys(state.picks).length) toast('Star some sets first');
+        syncQR();
+      });
+    });
+
+    $('#qrHolder').addEventListener('click', openQRFull);
+    $('#qrFullClose').addEventListener('click', closeQRFull);
+    $('#qrFull').addEventListener('click', function (e) {
+      if (e.target === this || e.target.closest('.qr-full-inner')) closeQRFull();
+    });
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape' && !$('#qrFull').hidden) closeQRFull();
+    });
+
+    $('#copyLinkBtn').addEventListener('click', function () {
+      copy(qrText(), 'Link copied');
+    });
+
     $('#shareBtn').addEventListener('click', function () {
       if (!Object.keys(state.picks).length) return toast('Pick some sets first');
       var url = shareUrl();
@@ -1048,12 +1148,17 @@
       navigator.serviceWorker.register('sw.js').catch(function () {});
     });
 
-    /* A new worker taking over means the cached app itself changed. Reload once
-       so the running page isn't an old build reading a new schedule. Guarded,
-       because a reload loop here would be miserable to debug in a field. */
+    /* A new worker taking over means the cached app itself changed, so reload
+       once rather than let an old build read a new schedule.
+
+       Only when a worker was ALREADY in charge. On a first-ever visit the
+       worker takes control mid-page, and reloading there would throw away
+       whatever the page had just done — including picks imported from a
+       scanned link, which land before the worker is ready. */
+    var hadController = !!navigator.serviceWorker.controller;
     var reloaded = false;
     navigator.serviceWorker.addEventListener('controllerchange', function () {
-      if (reloaded) return;
+      if (!hadController || reloaded) return;
       reloaded = true;
       location.reload();
     });

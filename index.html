@@ -134,9 +134,24 @@
       <div class="seg"><button id="installFromSettings" hidden>Install</button></div>
     </div>
 
-    <h3>My picks</h3>
+    <h3>Share</h3>
+    <div class="seg qr-seg" id="qrSeg" role="group" aria-label="What to share">
+      <button data-qr="app" aria-pressed="true">The schedule</button>
+      <button data-qr="mine" aria-pressed="false">My picks</button>
+    </div>
+
+    <div class="qr-card">
+      <button class="qr-holder" id="qrHolder" aria-label="Show the code full screen">
+        <canvas id="qrCanvas" width="320" height="320" role="img"
+                aria-label="QR code linking to the schedule"></canvas>
+      </button>
+      <p class="qr-cap" id="qrCap">Point a phone camera at this to open the schedule.</p>
+      <p class="qr-url" id="qrUrl"></p>
+    </div>
+
     <button class="btn primary" id="shareBtn">Share my schedule</button>
-    <button class="btn" id="copyTextBtn">Copy as plain text</button>
+    <button class="btn" id="copyLinkBtn">Copy link</button>
+    <button class="btn" id="copyTextBtn">Copy my picks as text</button>
     <button class="btn danger" id="clearBtn">Clear all picks</button>
     <p class="note" id="storeNote"></p>
 
@@ -144,8 +159,17 @@
   </div>
 </div>
 
+<div class="qr-full" id="qrFull" hidden>
+  <button class="qr-full-close" id="qrFullClose" aria-label="Close">✕</button>
+  <div class="qr-full-inner">
+    <canvas id="qrFullCanvas" role="img" aria-label="QR code linking to the schedule"></canvas>
+    <p id="qrFullCap">Scan to open the Emotion 26 schedule</p>
+  </div>
+</div>
+
 <div id="toast" role="status" aria-live="polite"></div>
 
+<script src="js/qr.js"></script>
 <script src="js/data.js"></script>
 <script src="js/app.js"></script>
 </body>
