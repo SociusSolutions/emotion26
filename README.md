@@ -1,6 +1,7 @@
 # Emotion 26 — Festival Schedule
 
-A phone-first web app for the full three-day, five-stage lineup. Open it in any
+A phone-first web app for the full three-day lineup — five stages plus the
+workshop track. Open it in any
 browser, star the sets you want, get a heads-up before each one starts.
 
 No accounts, no server, no app store. It's plain HTML, CSS and JavaScript — one
@@ -25,6 +26,9 @@ or as [one zip](https://sociussolutions.github.io/emotion26/assets/screenshots/e
   Afternoon / Evening / Night / Late night. This is the planning view.
 - Day tabs for Friday / Saturday / Sunday, or just swipe left and right.
 - Stage chips to hide stages you're not going to walk to.
+- **Workshops** are a sixth track alongside the five music stages, so a hoop
+  class and a DJ set clash with each other the same way two DJ sets do. Each
+  one carries its host and, where it isn't at The Glow Lounge, its location.
 - Search finds an artist **across the whole weekend**, not just the day you're
   looking at — useful, since several acts play more than one stage.
 
@@ -126,6 +130,9 @@ running order**:
 
 - A set runs until the **next entry**. To shorten one, add a `null` entry where
   it should end. To lengthen it, delete the entry after it.
+- An optional **third item** is a note shown under the name — a host, a
+  location, a prerequisite: `['11:00', 'Guided Paint Experience', "At Art N' Groove"]`.
+  Notes are searchable, so people can find everything at a given location.
 - **After midnight is automatic.** Any time that isn't later than the line above
   it rolls to the next morning. `23:30` then `01:00` puts that set at 1am the
   following day. You never write a date.
@@ -133,7 +140,14 @@ running order**:
   set is assumed to be one hour long.
 - To move the festival, change the three `date` fields at the top of the file.
 - To add or rename a stage, edit the `stages` array and add a matching key under
-  `schedule`. Colours flow through the whole UI automatically.
+  `schedule`. Colours flow through the whole UI automatically. A stage may also
+  carry a `venue` (shown under its name), a `note` (a callout above its list)
+  and a `unit` (what the header counts — "sets" unless you say otherwise).
+
+One caveat on **share links**: they carry picks as `stage.day.time`, so they
+survive new stages and renamed artists, but a pick whose *start time* you edit
+won't come back when an old link is opened. If you re-time a set after people
+have shared schedules, they'll need to re-star that one.
 
 ### About the times
 

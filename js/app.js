@@ -28,7 +28,7 @@
       var at = parseDate(dateIso, r[0]);
       while (prev && at <= prev) at.setDate(at.getDate() + 1);
       prev = at;
-      return { at: at, time: r[0], artist: r[1] };
+      return { at: at, time: r[0], artist: r[1], note: r[2] || '' };
     });
   }
 
@@ -50,6 +50,7 @@
             dayId: day.id,
             day: day,
             artist: row.artist,
+            note: row.note,
             start: row.at,
             end: end
           });
@@ -120,18 +121,40 @@
      Share links: picks encoded in the URL hash, no server involved.
      ------------------------------------------------------------------- */
 
+  /* Picks travel as their own ids (stage.day.time), not as positions in the
+     set list — adding a stage or fixing a time would otherwise silently point
+     an already-shared link at the wrong sets. */
   function encodePicks() {
-    var idx = [];
-    SETS.forEach(function (s, i) { if (state.picks[s.id]) idx.push(i); });
-    return idx.join('.');
+    return SETS.filter(function (s) { return state.picks[s.id]; })
+      .map(function (s) { return s.stageId + '.' + s.dayId + '.' + s.start.getHours() +
+                                 '-' + s.start.getMinutes(); })
+      .join('_');
   }
 
   function applyPicksFromHash() {
-    var m = /(?:^|[#&])p=([\d.]*)/.exec(location.hash || '');
+    var hash = location.hash || '';
+
+    // Links made before picks were id-encoded carried list positions, which no
+    // longer mean anything. Better to say so than to restore the wrong sets.
+    if (/(?:^|[#&])p=/.test(hash)) {
+      history.replaceState(null, '', location.pathname + location.search);
+      setTimeout(function () {
+        toast('That share link is from an older version — ask for a fresh one');
+      }, 600);
+      return false;
+    }
+
+    var m = /(?:^|[#&])s=([^&]*)/.exec(hash);
     if (!m) return false;
+
+    var byKey = {};
+    SETS.forEach(function (s) {
+      byKey[s.stageId + '.' + s.dayId + '.' + s.start.getHours() + '-' + s.start.getMinutes()] = s;
+    });
+
     var incoming = {};
-    m[1].split('.').forEach(function (n) {
-      var s = SETS[Number(n)];
+    decodeURIComponent(m[1]).split('_').forEach(function (k) {
+      var s = byKey[k];
       if (s) incoming[s.id] = true;
     });
     var count = Object.keys(incoming).length;
@@ -204,7 +227,8 @@
   function matchesQuery(s) {
     if (!state.query) return true;
     return s.artist.toLowerCase().indexOf(state.query) !== -1 ||
-           s.stage.name.toLowerCase().indexOf(state.query) !== -1;
+           s.stage.name.toLowerCase().indexOf(state.query) !== -1 ||
+           (s.note && s.note.toLowerCase().indexOf(state.query) !== -1);
   }
 
   function setsForDay(dayId) {
@@ -312,6 +336,7 @@
 
     var body = el('div', 's-body');
     body.appendChild(el('div', 's-artist', s.artist));
+    if (s.note) body.appendChild(el('div', 's-note', s.note));
 
     var meta = el('div', 's-meta');
     if (opts.showStage) {
@@ -377,12 +402,15 @@
       if (!mine.length) return;
 
       var group = el('section', 'stage-group');
+      group.style.setProperty('--sc', stage.color);   // head + note both read this
       var head = el('div', 'stage-head');
-      head.style.setProperty('--sc', stage.color);
       head.appendChild(el('span', 'bar'));
-      head.appendChild(el('span', null, stage.name));
-      head.appendChild(el('span', 'count', mine.length + ' sets'));
+      var name = el('span', null, stage.name);
+      if (stage.venue) name.appendChild(el('span', 'venue', stage.venue));
+      head.appendChild(name);
+      head.appendChild(el('span', 'count', mine.length + ' ' + (stage.unit || 'sets')));
       group.appendChild(head);
+      if (stage.note) group.appendChild(el('p', 'stage-note', stage.note));
 
       mine.forEach(function (s) { group.appendChild(setRow(s, {})); });
       grid.appendChild(group);
@@ -737,7 +765,7 @@
      ------------------------------------------------------------------- */
 
   function shareUrl() {
-    return location.origin + location.pathname + '#p=' + encodePicks();
+    return location.origin + location.pathname + '#s=' + encodePicks();
   }
 
   function asText() {
