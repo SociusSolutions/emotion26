@@ -83,6 +83,7 @@
     theme: 'dark',
     clock: '12',
     hidePast: false,
+    installDismissed: false,
     query: ''
   };
 
@@ -91,7 +92,7 @@
       var raw = localStorage.getItem(STORE_KEY);
       if (!raw) return;
       var saved = JSON.parse(raw);
-      ['day', 'view', 'notify', 'lead', 'theme', 'clock', 'hidePast'].forEach(function (k) {
+      ['day', 'view', 'notify', 'lead', 'theme', 'clock', 'hidePast', 'installDismissed'].forEach(function (k) {
         if (saved[k] !== undefined) state[k] = saved[k];
       });
       if (Array.isArray(saved.stages) && saved.stages.length) state.stages = saved.stages;
@@ -109,7 +110,8 @@
       localStorage.setItem(STORE_KEY, JSON.stringify({
         day: state.day, view: state.view, stages: state.stages, picks: state.picks,
         notify: state.notify, lead: state.lead, theme: state.theme,
-        clock: state.clock, hidePast: state.hidePast
+        clock: state.clock, hidePast: state.hidePast,
+        installDismissed: state.installDismissed
       }));
     } catch (e) { /* private mode — picks just won't survive a reload */ }
   }
@@ -617,6 +619,75 @@
   }
 
   /* ---------------------------------------------------------------------
+     Install to home screen.
+
+     Android/Chrome hands us a beforeinstallprompt event we can replay on a
+     tap. Safari gives us nothing, so iOS gets written instructions instead —
+     and it matters more there, since iOS only delivers notifications to a
+     home-screen install.
+     ------------------------------------------------------------------- */
+
+  var deferredPrompt = null;
+
+  function isStandalone() {
+    return (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) ||
+           navigator.standalone === true;
+  }
+
+  function isIOS() {
+    return /iphone|ipad|ipod/i.test(navigator.userAgent) ||
+           // iPadOS 13+ reports itself as a Mac, but a touchscreen gives it away
+           (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  }
+
+  function canOfferInstall() { return !isStandalone() && (deferredPrompt || isIOS()); }
+
+  function iosHint() {
+    return 'Tap the Share button' + (isIOS() ? ' ↑' : '') +
+           ' at the bottom of Safari, then "Add to Home Screen".';
+  }
+
+  function updateInstallUI() {
+    var bar = $('#installBar');
+    var show = canOfferInstall() && !state.installDismissed;
+
+    if (show) {
+      $('#installGo').hidden = !deferredPrompt;
+      $('#installBody').textContent = deferredPrompt
+        ? "Works with no signal, and it's the only way to get set reminders."
+        : iosHint();
+    }
+    bar.hidden = !show;
+    document.body.classList.toggle('has-installbar', show);
+
+    // Mirror the offer in Settings, so dismissing the banner doesn't bury it.
+    var btn = $('#installFromSettings');
+    if (btn) btn.hidden = !deferredPrompt || isStandalone();
+    var note = $('#installState');
+    if (note) {
+      note.textContent = isStandalone()
+        ? 'Installed. You are running the home-screen version.'
+        : deferredPrompt
+          ? 'Opens full-screen and works offline.'
+          : isIOS()
+            ? iosHint() + ' Reminders only fire from the installed version.'
+            : 'Open this page on your phone to install it.';
+    }
+  }
+
+  function doInstall() {
+    if (!deferredPrompt) { toast(iosHint()); return; }
+    var p = deferredPrompt;
+    deferredPrompt = null;
+    p.prompt();
+    p.userChoice.then(function (res) {
+      if (res && res.outcome === 'accepted') toast('Installed — open it from your home screen');
+      updateInstallUI();
+      syncSheet();
+    }).catch(function () { updateInstallUI(); });
+  }
+
+  /* ---------------------------------------------------------------------
      Settings sheet
      ------------------------------------------------------------------- */
 
@@ -646,6 +717,8 @@
     setSeg('#themeSeg', 'theme', state.theme);
     setSeg('#clockSeg', 'clock', state.clock);
     $('#hidePastToggle').setAttribute('aria-pressed', String(state.hidePast));
+
+    updateInstallUI();
 
     var n = Object.keys(state.picks).length;
     $('#storeNote').textContent = n
@@ -826,6 +899,28 @@
       toast('Picks cleared');
     });
 
+    $('#installGo').addEventListener('click', doInstall);
+    $('#installFromSettings').addEventListener('click', doInstall);
+    $('#installClose').addEventListener('click', function () {
+      state.installDismissed = true;
+      save();
+      updateInstallUI();
+      toast('You can still install it from Settings');
+    });
+
+    window.addEventListener('beforeinstallprompt', function (e) {
+      e.preventDefault();          // keep Chrome's own mini-infobar out of the way
+      deferredPrompt = e;
+      updateInstallUI();
+    });
+
+    window.addEventListener('appinstalled', function () {
+      deferredPrompt = null;
+      state.installDismissed = true;
+      save();
+      updateInstallUI();
+    });
+
     // Swipe left/right between days on the two day-based views.
     var x0 = null, y0 = null;
     document.addEventListener('touchstart', function (e) {
@@ -890,6 +985,9 @@
   scheduleReminders();
   render();
   tick();
+
+  // Let people look at the schedule for a moment before asking them to install.
+  setTimeout(updateInstallUI, 2500);
 
   setInterval(function () { tick(); slowTick(); }, 20000);
 

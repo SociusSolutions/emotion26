@@ -6,6 +6,12 @@ browser, star the sets you want, get a heads-up before each one starts.
 No accounts, no server, no app store. It's plain HTML, CSS and JavaScript — one
 folder you can drop on any static host.
 
+**https://sociussolutions.github.io/emotion26/**
+
+| Stages | Timeline | My Picks |
+|---|---|---|
+| ![Stages view](assets/screenshots/1-stages.png) | ![Timeline view](assets/screenshots/2-timeline.png) | ![My Picks view](assets/screenshots/3-mypicks.png) |
+
 ## What it does
 
 **Browse**
@@ -48,6 +54,14 @@ folder you can drop on any static host.
   to the home screen and left running in the background. There's no push
   server. On iOS, notifications only work when the app has been added to the
   home screen (Share → Add to Home Screen) — that's a Safari restriction.
+
+**Install to the phone**
+
+- A dismissible banner offers to add the app to the home screen. On Android it
+  is a one-tap install; on iOS it spells out the Safari Share → Add to Home
+  Screen steps, since Safari gives a page no way to trigger that itself.
+- Dismissing the banner doesn't lose it — the same offer lives in Settings.
+- It hides itself once the app is running from the home screen.
 
 **Works with no signal**
 
@@ -136,4 +150,21 @@ js/app.js               all app logic
 sw.js                   service worker (offline cache + notification clicks)
 manifest.webmanifest    home-screen install metadata
 assets/                 app icons
+assets/og.png           1200x630 link-preview card
+assets/screenshots/     phone screenshots (also shown in the install prompt)
 ```
+
+## Link previews
+
+Pasting the URL into iMessage, Slack, Discord, Facebook or a text post shows a
+card built from the Open Graph tags in `index.html`, using
+`assets/og.png` (1200×630).
+
+`og:image` and `og:url` are absolute URLs pointing at
+`sociussolutions.github.io` — scrapers ignore relative paths, so if the site
+ever moves to another domain those two tags have to be updated by hand.
+
+To regenerate the card after a branding or date change, edit the tags and
+re-render the image at 1200×630. Most platforms cache previews aggressively;
+Facebook's Sharing Debugger and LinkedIn's Post Inspector can force a re-scrape,
+and Slack/Discord usually refresh within a day.
