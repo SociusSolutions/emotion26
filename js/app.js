@@ -255,11 +255,23 @@
            (s.note && s.note.toLowerCase().indexOf(state.query) !== -1);
   }
 
+  var hiddenCount = 0;      // how many finished sets the last query dropped
+
   function setsForDay(dayId) {
-    return SETS.filter(function (s) {
-      return s.dayId === dayId && stageVisible(s.stageId) && matchesQuery(s) &&
-             !(state.hidePast && isPast(s));
+    var all = SETS.filter(function (s) {
+      return s.dayId === dayId && stageVisible(s.stageId) && matchesQuery(s);
     });
+    hiddenCount = 0;
+    if (!state.hidePast) return all;
+
+    var live = all.filter(function (s) { return !isPast(s); });
+
+    // On a day that's entirely over, hiding finished sets would leave a blank
+    // screen. Show the day instead — nobody opens Friday on Sunday by accident.
+    if (!live.length) return all;
+
+    hiddenCount = all.length - live.length;
+    return live;
   }
 
   function pickedSets() {
@@ -315,6 +327,19 @@
   function renderStageFilters() {
     var wrap = $('#stageFilters');
     wrap.innerHTML = '';
+
+    /* Hiding finished sets is the single most-wanted filter once a day is
+       under way, so it sits on the main screen rather than in Settings. */
+    var past = el('button', 'chip chip-time');
+    past.setAttribute('aria-pressed', String(state.hidePast));
+    past.appendChild(document.createTextNode(state.hidePast ? '⏳ Upcoming only' : '⏳ Hide finished'));
+    past.addEventListener('click', function () {
+      state.hidePast = !state.hidePast;
+      save(); render();
+      toast(state.hidePast ? 'Finished sets hidden' : 'Showing the whole day');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+    wrap.appendChild(past);
 
     var all = el('button', 'chip', FESTIVAL.stages.length === state.stages.length ? 'All stages' : 'Show all');
     all.setAttribute('aria-pressed', String(FESTIVAL.stages.length === state.stages.length));
@@ -587,6 +612,18 @@
     else if (state.view === 'stages') renderStagesView();
     else if (state.view === 'timeline') renderTimelineView();
     else if (state.view === 'mine') renderMineView();
+
+    // Never let sets vanish without saying so, or without a way back.
+    if (showsDay && hiddenCount) {
+      var bar = el('button', 'hidden-bar');
+      bar.appendChild(el('span', null,
+        hiddenCount + ' finished set' + (hiddenCount === 1 ? '' : 's') + ' hidden'));
+      bar.appendChild(el('span', 'act', 'Show'));
+      bar.addEventListener('click', function () {
+        state.hidePast = false; save(); render();
+      });
+      viewEl.insertBefore(bar, viewEl.firstChild);
+    }
 
     if (jumpPending) { jumpPending = false; jumpToNow(); }
   }
