@@ -33,6 +33,15 @@ const FESTIVAL = {
   name: 'Emotion 26',
   tagline: 'Three days. Five stages. Plus workshops.',
 
+  /* ---- BUMP THESE TWO WHENEVER YOU CHANGE ANYTHING ------------------
+     The version is shown in Settings so people can confirm they're on the
+     newest copy, and the service worker uses it to name its cache — so
+     bumping it is also what pushes the update out to phones.
+     `updated` is UTC (the trailing Z matters); each phone shows it in
+     local time. -------------------------------------------------------- */
+  version: '1.7',
+  updated: '2026-07-31T23:05:00Z',
+
   /* ---- CHANGE THE DATES HERE ---------------------------------------- */
   days: [
     { id: 'fri', label: 'Friday',   short: 'FRI', date: '2026-07-31' },

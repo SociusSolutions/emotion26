@@ -174,6 +174,20 @@ If any of it is wrong, the fix is a one-line edit in `js/data.js`.
 Notown has no Friday programme on the flyer, so it simply doesn't appear on
 Friday.
 
+## Versioning and updates
+
+`version` and `updated` at the top of `js/data.js` are the only two things to
+bump when shipping a change. The version is shown in Settings so people can
+confirm what they're running, and the service worker names its cache after it,
+so bumping it is also what retires the old cache on every phone. `updated` is
+UTC — the trailing `Z` matters; each phone renders it in local time.
+
+A published change reaches a phone on its **next load**: the page, the schedule
+and the service worker are fetched network-first with the browser's HTTP cache
+bypassed, and a new worker taking over reloads the page once. Settings also has
+a **Check for updates** button that deletes every cache, unregisters the worker
+and reloads — starred sets live in `localStorage` and are left alone.
+
 ## Credits
 
 Developed by **Randal Boiteau** / DJ Alphagroove — djalpha@gmail.com

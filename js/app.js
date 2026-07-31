@@ -865,6 +865,7 @@
 
     updateInstallUI();
     syncQR();
+    syncVersion();
 
     var n = Object.keys(state.picks).length;
     $('#storeNote').textContent = n
@@ -963,6 +964,57 @@
   }
 
   function closeQRFull() { $('#qrFull').hidden = true; }
+
+  /* ---------------------------------------------------------------------
+     Version and forced refresh
+     ------------------------------------------------------------------- */
+
+  function describeUpdated() {
+    var t = new Date(FESTIVAL.updated || '');
+    if (isNaN(t.getTime())) return '';
+    var mins = Math.round((Date.now() - t.getTime()) / 60000);
+    var rel = mins < 2 ? 'just now'
+            : mins < 60 ? mins + ' minutes ago'
+            : mins < 120 ? 'an hour ago'
+            : mins < 1440 ? Math.round(mins / 60) + ' hours ago'
+            : mins < 2880 ? 'yesterday'
+            : Math.round(mins / 1440) + ' days ago';
+    return 'Updated ' + rel + ' — ' +
+      t.toLocaleString(undefined, { weekday: 'short', hour: 'numeric', minute: '2-digit' });
+  }
+
+  function syncVersion() {
+    var n = $('#verNum'), w = $('#verWhen');
+    if (n) n.textContent = 'v' + (FESTIVAL.version || '?');
+    if (w) w.textContent = describeUpdated();
+  }
+
+  /* Drop every cached file and re-register the worker, then reload. This is
+     the "why am I still seeing the old one" button, so it has to actually
+     clear things rather than just reload — picks live in localStorage and are
+     deliberately left alone. */
+  function forceRefresh() {
+    toast('Fetching the latest…');
+
+    var jobs = [];
+    if (window.caches && caches.keys) {
+      jobs.push(caches.keys().then(function (names) {
+        return Promise.all(names.map(function (n) { return caches.delete(n); }));
+      }));
+    }
+    if (navigator.serviceWorker && navigator.serviceWorker.getRegistrations) {
+      jobs.push(navigator.serviceWorker.getRegistrations().then(function (regs) {
+        return Promise.all(regs.map(function (r) { return r.unregister(); }));
+      }));
+    }
+
+    Promise.all(jobs).catch(function () {}).then(function () {
+      // Cache-bust the navigation itself, or the browser's own HTTP cache can
+      // hand back the same stale page we just cleared.
+      var url = location.origin + location.pathname + '?r=' + Date.now();
+      location.replace(url);
+    });
+  }
 
   function asText() {
     var picks = pickedSets();
@@ -1118,6 +1170,8 @@
       if (e.key === 'Escape' && !$('#qrFull').hidden) closeQRFull();
     });
 
+    $('#refreshBtn').addEventListener('click', forceRefresh);
+
     $('#copyLinkBtn').addEventListener('click', function () {
       copy(qrText(), 'Link copied');
     });
@@ -1225,6 +1279,13 @@
 
   document.documentElement.setAttribute('data-theme', state.theme);
   if (state.view === 'settings') state.view = 'stages';
+
+  // Tidy the "check for updates" cache-buster out of the address bar so it
+  // isn't carried into bookmarks, shares or the home-screen shortcut.
+  if (/[?&]r=\d+/.test(location.search)) {
+    var clean = location.search.replace(/([?&])r=\d+&?/, '$1').replace(/[?&]$/, '');
+    history.replaceState(null, '', location.pathname + clean + location.hash);
+  }
 
   wire();
   scheduleReminders();
