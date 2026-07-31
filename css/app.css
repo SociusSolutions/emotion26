@@ -153,6 +153,34 @@ header.app-head {
 }
 .chip-time[aria-pressed='false'] { opacity: 1; color: var(--text-dim); }
 
+/* Announcement card — deliberately louder than the rest of the list, since it
+   is the only thing on screen nobody asked for. */
+.ann {
+  position: relative;
+  margin: 12px 0 6px;
+  background: var(--card-2);
+  border: 1px solid #6ee7a8;
+  border-radius: 15px;
+  overflow: hidden;
+}
+.ann img {
+  display: block; width: 100%; height: auto;
+  border-bottom: 1px solid var(--line);
+}
+.ann-body { padding: 13px 46px 14px 15px; }
+.ann-title { font-size: 17px; font-weight: 800; color: var(--text); }
+.ann-text { font-size: 14.5px; color: var(--text-dim); margin-top: 3px; }
+.ann-time {
+  font-size: 11px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase;
+  color: var(--live); margin-top: 7px;
+}
+.ann-x {
+  position: absolute; top: 6px; right: 6px;
+  width: 38px; height: 38px; display: grid; place-items: center;
+  border-radius: 10px; font-size: 14px; color: #fff;
+  background: rgba(0,0,0,.45);
+}
+
 .status-bar {
   margin: 10px 0 4px; padding: 13px 15px;
   background: var(--card);
