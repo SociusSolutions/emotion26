@@ -63,6 +63,16 @@ or as [one zip](https://sociussolutions.github.io/emotion26/assets/screenshots/e
   server. On iOS, notifications only work when the app has been added to the
   home screen (Share → Add to Home Screen) — that's a Safari restriction.
 
+**Sharing**
+
+- Settings has a **QR code** big enough to hold up across a crowd — someone
+  points a camera at it and lands on the schedule. It toggles between the app
+  itself and a copy of your picks, and tapping it goes full screen on white for
+  the easiest possible scan.
+- The code is generated on the phone (`js/qr.js`), not fetched from an image
+  service, so it still appears when there's no signal — which is exactly when
+  someone leans over and asks how to get the schedule.
+
 **Install to the phone**
 
 - A dismissible banner offers to add the app to the home screen. On Android it
@@ -167,6 +177,7 @@ index.html              app shell
 css/app.css             all styles
 js/data.js              the schedule — the only file most edits touch
 js/app.js               all app logic
+js/qr.js                QR encoder (byte mode, versions 1-25, EC level L/M)
 sw.js                   service worker (offline cache + notification clicks)
 manifest.webmanifest    home-screen install metadata
 assets/                 app icons
