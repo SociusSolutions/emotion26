@@ -224,8 +224,26 @@
      Live status
      ------------------------------------------------------------------- */
 
+  /* ?now=2026-08-29T22:00 pretends it's some other moment, so the live
+     behaviour — what's on, what's finished, what gets hidden — can be checked
+     without waiting for the festival. Ignored unless the value parses. */
+  var CLOCK_OFFSET = 0;
+  (function () {
+    var m = /[?&]now=([^&]+)/.exec(location.search);
+    if (!m) return;
+    var t = new Date(decodeURIComponent(m[1]));
+    if (!isNaN(t.getTime())) CLOCK_OFFSET = t.getTime() - Date.now();
+  })();
+
   var now = new Date();
-  function refreshNow() { now = new Date(); }
+  function refreshNow() { now = new Date(Date.now() + CLOCK_OFFSET); }
+
+  // When the festival runs, so the app can say "not started yet" rather than
+  // looking broken to someone checking it in advance.
+  var FIRST_SET = SETS.length ? SETS[0].start : null;
+  var LAST_END = SETS.reduce(function (m2, s) {
+    return !m2 || s.end > m2 ? s.end : m2;
+  }, null);
 
   function isLive(s) { return s.start <= now && now < s.end; }
   function isPast(s) { return s.end <= now; }
@@ -336,7 +354,9 @@
     past.addEventListener('click', function () {
       state.hidePast = !state.hidePast;
       save(); render();
-      toast(state.hidePast ? 'Finished sets hidden' : 'Showing the whole day');
+      toast(!state.hidePast ? 'Showing the whole day'
+            : hiddenCount ? hiddenCount + ' finished set' + (hiddenCount === 1 ? '' : 's') + ' hidden'
+            : 'Nothing has finished yet');
       window.scrollTo({ top: 0, behavior: 'smooth' });
     });
     wrap.appendChild(past);
@@ -563,7 +583,12 @@
       if (!upcoming.length) { bar.hidden = true; return; }
       var firstStart = upcoming[0].start.getTime();
       live = upcoming.filter(function (s) { return s.start.getTime() === firstStart; });
-      title = 'Up next · ' + fmtTime(live[0].start);
+      // Name the day too when the next thing isn't today, or "up next · 11am"
+      // reads as a time that has already gone by.
+      var soon = live[0].start;
+      var sameDay = soon.toDateString() === now.toDateString();
+      title = (sameDay ? 'Up next · ' : 'First up · ' + soon.toLocaleDateString(undefined,
+        { weekday: 'short' }) + ' ') + fmtTime(soon);
     }
 
     $('#nowTitle').textContent = title;
@@ -612,6 +637,29 @@
     else if (state.view === 'stages') renderStagesView();
     else if (state.view === 'timeline') renderTimelineView();
     else if (state.view === 'mine') renderMineView();
+
+    /* Before the gates open, every time on screen is in the future — so "hide
+       finished" does nothing and the day looks stubbornly full. Say so, rather
+       than leave someone tapping a filter that appears broken. */
+    if (showsDay && FIRST_SET && now < FIRST_SET) {
+      var days = Math.ceil((FIRST_SET - now) / 86400000);
+      var when = FIRST_SET.toLocaleDateString(undefined,
+        { weekday: 'long', month: 'long', day: 'numeric' });
+      var away = days <= 0 ? 'later today'
+               : days === 1 ? 'tomorrow'
+               : 'in ' + days + ' days';
+      var note = el('div', 'status-bar');
+      note.appendChild(el('strong', null, FESTIVAL.name + ' starts ' + when + ', ' + away + '.'));
+      note.appendChild(el('span', null,
+        'Nothing has finished yet, so the whole line-up is showing. ' +
+        'Once it starts, ⏳ drops everything that has already ended.'));
+      viewEl.insertBefore(note, viewEl.firstChild);
+    } else if (showsDay && LAST_END && now > LAST_END) {
+      var over = el('div', 'status-bar');
+      over.appendChild(el('strong', null, "That's a wrap."));
+      over.appendChild(el('span', null, 'Showing the full line-up.'));
+      viewEl.insertBefore(over, viewEl.firstChild);
+    }
 
     // Never let sets vanish without saying so, or without a way back.
     if (showsDay && hiddenCount) {

@@ -153,6 +153,16 @@ header.app-head {
 }
 .chip-time[aria-pressed='false'] { opacity: 1; color: var(--text-dim); }
 
+.status-bar {
+  margin: 10px 0 4px; padding: 13px 15px;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-left: 4px solid #5ccfee;
+  border-radius: 12px;
+  font-size: 13.5px; line-height: 1.45; color: var(--text-dim);
+}
+.status-bar strong { display: block; color: var(--text); font-size: 15px; margin-bottom: 3px; }
+
 .hidden-bar {
   display: flex; align-items: center; gap: 10px; width: 100%;
   margin: 10px 0 4px; padding: 11px 14px;

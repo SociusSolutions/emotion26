@@ -35,9 +35,9 @@ const FESTIVAL = {
 
   /* ---- CHANGE THE DATES HERE ---------------------------------------- */
   days: [
-    { id: 'fri', label: 'Friday',   short: 'FRI', date: '2026-08-28' },
-    { id: 'sat', label: 'Saturday', short: 'SAT', date: '2026-08-29' },
-    { id: 'sun', label: 'Sunday',   short: 'SUN', date: '2026-08-30' }
+    { id: 'fri', label: 'Friday',   short: 'FRI', date: '2026-07-31' },
+    { id: 'sat', label: 'Saturday', short: 'SAT', date: '2026-08-01' },
+    { id: 'sun', label: 'Sunday',   short: 'SUN', date: '2026-08-02' }
   ],
 
   /* ---- STAGES -------------------------------------------------------- */
