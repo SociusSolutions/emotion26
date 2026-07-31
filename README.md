@@ -26,6 +26,10 @@ or as [one zip](https://sociussolutions.github.io/emotion26/assets/screenshots/e
   Afternoon / Evening / Night / Late night. This is the planning view.
 - Day tabs for Friday / Saturday / Sunday, or just swipe left and right.
 - Stage chips to hide stages you're not going to walk to.
+- **⏳ Hide finished** — one tap on the schedule and everything that has already
+  ended drops away, leaving only what's still to come. A line at the top says
+  how many were hidden and puts them back. Switching to a day that's entirely
+  over shows it in full rather than a blank screen. Also in Settings.
 - **Workshops** are a sixth track alongside the five music stages, so a hoop
   class and a DJ set clash with each other the same way two DJ sets do. Each
   one carries its host and, where it isn't at The Glow Lounge, its location.
