@@ -89,19 +89,21 @@ notifications — browsers only allow those over `http(s)`.
 
 ## Deploying
 
-A GitHub Actions workflow (`.github/workflows/pages.yml`) publishes the folder
-to GitHub Pages on every push to `main`. It enables Pages itself on the first
-run, so there's nothing to click. The site lands at
+The site is live at
 
 **https://sociussolutions.github.io/emotion26/**
 
-If the first run fails on "Get Pages site failed", the repo's Actions token
-isn't allowed to enable Pages — switch it on once by hand at
-**Settings → Pages → Build and deployment → Source: GitHub Actions** and re-run
-the workflow.
+GitHub Pages is configured as **Deploy from a branch** — `main`, root folder —
+so pushing to `main` publishes within a minute or two. There is no build step
+and no deploy workflow to keep working; Pages serves these files as they are.
+(`.nojekyll` is what stops Pages running the files through Jekyll first.)
 
 Anything else that serves static files works identically — Netlify, Vercel,
-Cloudflare Pages, or an S3 bucket. There is no build step.
+Cloudflare Pages, or an S3 bucket.
+
+If you ever switch Pages to the **GitHub Actions** source, you'll need a
+deploy workflow again; `actions/upload-pages-artifact` with `path: .` plus
+`actions/deploy-pages` is all it takes.
 
 ## Editing the schedule
 
