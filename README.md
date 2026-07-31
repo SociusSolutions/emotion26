@@ -76,11 +76,15 @@ notifications — browsers only allow those over `http(s)`.
 ## Deploying
 
 A GitHub Actions workflow (`.github/workflows/pages.yml`) publishes the folder
-to GitHub Pages on every push to the branch. To turn it on:
+to GitHub Pages on every push to `main`. It enables Pages itself on the first
+run, so there's nothing to click. The site lands at
 
-**Settings → Pages → Build and deployment → Source: GitHub Actions**
+**https://sociussolutions.github.io/emotion26/**
 
-Then push. The site lands at `https://<owner>.github.io/<repo>/`.
+If the first run fails on "Get Pages site failed", the repo's Actions token
+isn't allowed to enable Pages — switch it on once by hand at
+**Settings → Pages → Build and deployment → Source: GitHub Actions** and re-run
+the workflow.
 
 Anything else that serves static files works identically — Netlify, Vercel,
 Cloudflare Pages, or an S3 bucket. There is no build step.
