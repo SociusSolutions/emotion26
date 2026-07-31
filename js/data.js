@@ -11,6 +11,11 @@
      ["21:00", "Bassculprit"]     -> Bassculprit starts at 9:00 PM
      ["06:00", null]              -> stage closed / nothing on from here
 
+   An optional THIRD item is a note shown under the name — use it for a
+   different location, a host, or a prerequisite:
+
+     ["11:00", "Guided Paint Experience", "At Art N' Groove"]
+
    A set runs until the NEXT entry in the list. So to make a set shorter,
    add a `null` entry at the time it ends. To make it longer, delete the
    entry after it.
@@ -26,7 +31,7 @@
 
 const FESTIVAL = {
   name: 'Emotion 26',
-  tagline: 'Three days. Five stages.',
+  tagline: 'Three days. Five stages. Plus workshops.',
 
   /* ---- CHANGE THE DATES HERE ---------------------------------------- */
   days: [
@@ -41,7 +46,14 @@ const FESTIVAL = {
     { id: 'tree',  name: 'Treehouse',        short: 'Treehouse', color: '#5ccfee' },
     { id: 'ocul',  name: 'The Oculary',      short: 'Oculary',  color: '#b28dff' },
     { id: 'noto',  name: 'Notown',           short: 'Notown',   color: '#6ee7a8' },
-    { id: 'oil',   name: 'The Midnight Oil', short: 'Midnight', color: '#ffc45c' }
+    { id: 'oil',   name: 'The Midnight Oil', short: 'Midnight', color: '#ffc45c' },
+    {
+      id: 'wksp', name: 'Workshops', short: 'Workshops', color: '#ff9a6c',
+      venue: 'The Glow Lounge',
+      unit: 'workshops',      // shown instead of "sets" in the stage header
+      note: 'Workshops meet at The Glow Lounge unless a location is given below. ' +
+            'The Good Vibes Games Grounds run all weekend at the Emotion Sign.'
+    }
   ],
 
   /* ---- THE SCHEDULE -------------------------------------------------- */
@@ -241,6 +253,38 @@ const FESTIVAL = {
         ['18:00', 'Evotek'],
         ['19:00', 'Geosphere'],
         ['21:00', null]
+      ]
+    },
+
+    wksp: {
+      fri: [
+        ['11:00', 'Guided Paint Experience', "At Art N' Groove"],
+        ['12:00', 'Ignite Your Flow: Beginner Hoop Isolations & Mini Combo', 'With FENIX'],
+        ['13:00', 'LENS LAB', 'By Zoie Topia'],
+        ['14:00', 'Poi Playground', 'With NEENR'],
+        ['15:00', 'Making Giant Bubbles', 'With Sprout'],
+        ['16:00', 'Fire Flow Safety 101',
+          "By Elementa, featuring Spinja & J's. Prerequisite FAI fire safety course for Saturday's Flow Jam."],
+        ['17:00', null]
+      ],
+      sat: [
+        ['12:00', 'Fractal Flow Yoga', 'At Main Stage'],
+        ['13:00', 'Keep Growing', 'By Paper Doll. Ongoing all weekend.'],
+        ['14:00', 'The Cypher Lab', 'A community hip-hop writing and freestyle'],
+        ['15:00', 'Sacred Self Love Rituals & Potions', 'By Lacey'],
+        ['16:00', 'Ecstatic Dance', 'With Nicole Rose'],
+        ['17:00', null],
+        ['20:00', 'Fire Flow Jam', 'Hosted by Elementa. At the Emotion Sign.'],
+        ['21:00', null]
+      ],
+      sun: [
+        ['11:00', 'Rubber Duck Costume Contest & Water Fight', "At Art N' Groove"],
+        ['12:00', 'Rest & Reset: Yoga & Soundbath'],
+        ['13:00', 'Beginner Floorwork & Flow',
+          'With Suumii, featuring Miss Maple Munroe & Erika the Duchess of PLUR'],
+        ['14:00', 'Circus Arts', 'With Juggler Joel & Friends'],
+        ['15:00', 'Intro to Club Contact / Manipulation Juggles', 'With Moderately Amazing Eli'],
+        ['16:00', null]
       ]
     }
   }
