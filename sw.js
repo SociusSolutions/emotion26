@@ -37,7 +37,9 @@ var SHELL = [
   'assets/icon.svg',
   'assets/icon-180.png',
   'assets/icon-192.png',
-  'assets/icon-512.png'
+  'assets/icon-512.png',
+  'assets/notown-wide.jpg',
+  'assets/notown-square.jpg'
 ];
 
 self.addEventListener('install', function (e) {

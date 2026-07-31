@@ -91,6 +91,8 @@
     clock: '12',
     hidePast: false,
     installDismissed: false,
+    annFired: {},      // announcement id -> notification already sent
+    annDismissed: {},  // announcement id -> banner closed by the user
     query: ''
   };
 
@@ -99,7 +101,8 @@
       var raw = localStorage.getItem(STORE_KEY);
       if (!raw) return;
       var saved = JSON.parse(raw);
-      ['day', 'view', 'notify', 'lead', 'theme', 'clock', 'hidePast', 'installDismissed'].forEach(function (k) {
+      ['day', 'view', 'notify', 'lead', 'theme', 'clock', 'hidePast', 'installDismissed',
+       'annFired', 'annDismissed'].forEach(function (k) {
         if (saved[k] !== undefined) state[k] = saved[k];
       });
       /* Stage filters are stored as what's HIDDEN, not what's shown, so a stage
@@ -138,7 +141,8 @@
         day: state.day, view: state.view, hidden: hidden, picks: state.picks,
         notify: state.notify, lead: state.lead, theme: state.theme,
         clock: state.clock, hidePast: state.hidePast,
-        installDismissed: state.installDismissed
+        installDismissed: state.installDismissed,
+        annFired: state.annFired, annDismissed: state.annDismissed
       }));
     } catch (e) { /* private mode — picks just won't survive a reload */ }
   }
@@ -450,6 +454,33 @@
     render();
   }
 
+  function announcementCard(a) {
+    var card = el('div', 'ann');
+
+    if (a.image) {
+      var img = document.createElement('img');
+      img.src = a.image;
+      img.alt = '';
+      img.loading = 'lazy';
+      card.appendChild(img);
+    }
+
+    var body = el('div', 'ann-body');
+    body.appendChild(el('div', 'ann-title', a.title));
+    if (a.body) body.appendChild(el('div', 'ann-text', a.body));
+    body.appendChild(el('div', 'ann-time', 'Until ' + fmtTime(a.until)));
+    card.appendChild(body);
+
+    var x = el('button', 'ann-x', '✕');
+    x.setAttribute('aria-label', 'Dismiss ' + a.title);
+    x.addEventListener('click', function () {
+      state.annDismissed[a.id] = true;
+      save(); render();
+    });
+    card.appendChild(x);
+    return card;
+  }
+
   function emptyState(icon, title, body) {
     var e = el('div', 'empty');
     e.appendChild(el('div', 'big', icon));
@@ -646,6 +677,10 @@
     else if (state.view === 'timeline') renderTimelineView();
     else if (state.view === 'mine') renderMineView();
 
+    // Announcements sit above everything, on every day-based view.
+    var ann = liveAnnouncement();
+    if (showsDay && ann) viewEl.insertBefore(announcementCard(ann), viewEl.firstChild);
+
     /* Before the gates open, every time on screen is in the future — so "hide
        finished" does nothing and the day looks stubbornly full. Say so, rather
        than leave someone tapping a filter that appears broken. */
@@ -681,7 +716,11 @@
       viewEl.insertBefore(bar, viewEl.firstChild);
     }
 
-    if (jumpPending) { jumpPending = false; jumpToNow(); }
+    /* Skip the jump-to-now scroll while an announcement is up, or the thing
+       nobody asked for but everybody should see is the one thing scrolled
+       past. It'll happen on the next open, once the banner has expired or
+       been dismissed. */
+    if (jumpPending) { jumpPending = false; if (!ann) jumpToNow(); }
   }
 
   /* On first load during the festival, drop the user at what's playing right
@@ -733,24 +772,80 @@
     });
   }
 
-  function show(title, body) {
-    try {
-      var n = new Notification(title, {
-        body: body,
-        icon: 'assets/icon-180.png',
-        badge: 'assets/icon-180.png',
-        tag: 'emotion26',
-        renotify: true
-      });
-      n.onclick = function () { window.focus(); n.close(); };
-    } catch (e) {
-      // Some browsers only allow notifications through the service worker.
-      if (navigator.serviceWorker && navigator.serviceWorker.ready) {
-        navigator.serviceWorker.ready.then(function (reg) {
-          reg.showNotification(title, { body: body, icon: 'assets/icon-180.png', tag: 'emotion26' });
-        }).catch(function () {});
-      }
+  /* ---------------------------------------------------------------------
+     Announcements — timed messages for everyone, not tied to a pick.
+
+     There is no push server, so a notification can only reach a phone with
+     the app open or installed in the background AND notifications allowed.
+     The in-app banner is the part everyone sees, and it's the reason an
+     announcement stays useful to someone who opens the app at 3pm.
+     ------------------------------------------------------------------- */
+
+  var ANNOUNCEMENTS = (FESTIVAL.announcements || []).map(function (a) {
+    var day = FESTIVAL.days.filter(function (d) { return d.id === a.day; })[0];
+    if (!day) return null;
+    return {
+      id: a.id,
+      title: a.title,
+      body: a.body,
+      image: a.image,
+      icon: a.icon,
+      at: parseDate(day.date, a.at),
+      until: parseDate(day.date, a.until || a.at)
+    };
+  }).filter(Boolean);
+
+  var ANN_GRACE = 30 * 60000;    // don't fire a notification hours late
+
+  function liveAnnouncement() {
+    for (var i = 0; i < ANNOUNCEMENTS.length; i++) {
+      var a = ANNOUNCEMENTS[i];
+      if (now >= a.at && now < a.until && !state.annDismissed[a.id]) return a;
     }
+    return null;
+  }
+
+  function tickAnnouncements() {
+    if (!state.notify || !notifyReady()) return;
+    ANNOUNCEMENTS.forEach(function (a) {
+      if (state.annFired[a.id]) return;
+      if (now < a.at) return;
+      // Missed it by more than the grace window (phone asleep, app closed) —
+      // mark it done rather than firing a notification about the past.
+      if (now - a.at > ANN_GRACE) { state.annFired[a.id] = true; save(); return; }
+      state.annFired[a.id] = true;
+      save();
+      show(a.title, a.body, { image: a.image, icon: a.icon, tag: a.id });
+    });
+  }
+
+  function show(title, body, opts) {
+    opts = opts || {};
+    var cfg = {
+      body: body,
+      icon: opts.icon || 'assets/icon-180.png',
+      badge: 'assets/icon-180.png',
+      tag: opts.tag || 'emotion26',
+      renotify: true
+    };
+    // A picture only renders when the notification comes from the service
+    // worker, and only on browsers that support it — hence the SW route first.
+    if (opts.image) cfg.image = opts.image;
+
+    if (navigator.serviceWorker && navigator.serviceWorker.ready) {
+      navigator.serviceWorker.ready.then(function (reg) {
+        return reg.showNotification(title, cfg);
+      }).catch(function () { showFallback(title, cfg); });
+      return;
+    }
+    showFallback(title, cfg);
+  }
+
+  function showFallback(title, cfg) {
+    try {
+      var n = new Notification(title, cfg);
+      n.onclick = function () { window.focus(); n.close(); };
+    } catch (e) { /* blocked, or the page lost permission */ }
   }
 
   function requestNotify(cb) {
@@ -1241,7 +1336,7 @@
     }, { passive: true });
 
     document.addEventListener('visibilitychange', function () {
-      if (!document.hidden) { refreshNow(); tickReminders(); render(); }
+      if (!document.hidden) { refreshNow(); tickReminders(); tickAnnouncements(); render(); }
     });
   }
 
@@ -1253,6 +1348,7 @@
     refreshNow();
     $('#clock').textContent = fmtTime(now);
     tickReminders();
+    tickAnnouncements();
   }
 
   var lastRenderMin = -1;

@@ -39,14 +39,42 @@ const FESTIVAL = {
      bumping it is also what pushes the update out to phones.
      `updated` is UTC (the trailing Z matters); each phone shows it in
      local time. -------------------------------------------------------- */
-  version: '1.7',
-  updated: '2026-07-31T23:05:00Z',
+  version: '1.8',
+  updated: '2026-07-31T23:30:00Z',
 
   /* ---- CHANGE THE DATES HERE ---------------------------------------- */
   days: [
     { id: 'fri', label: 'Friday',   short: 'FRI', date: '2026-07-31' },
     { id: 'sat', label: 'Saturday', short: 'SAT', date: '2026-08-01' },
     { id: 'sun', label: 'Sunday',   short: 'SUN', date: '2026-08-02' }
+  ],
+
+  /* ---- ANNOUNCEMENTS --------------------------------------------------
+     Timed messages for everyone, not tied to a starred set. Each one fires a
+     notification at `at` (only for people who have notifications switched on)
+     and shows as a banner on the schedule from `at` until `until`, which is
+     what most people will actually see.
+
+     `at` and `until` are 24-hour times on the given day. Give each one a
+     unique `id` — it's what stops a message firing twice.
+     -------------------------------------------------------------------- */
+  announcements: [
+    {
+      id: 'notown-open-sat',
+      day: 'sat', at: '14:00', until: '17:45',
+      title: 'Notown is open',
+      body: 'More rye, less pants.',
+      image: 'assets/notown-wide.jpg',
+      icon: 'assets/notown-square.jpg'
+    },
+    {
+      id: 'notown-open-sun',
+      day: 'sun', at: '14:00', until: '17:45',
+      title: 'Notown is open',
+      body: 'More rye, less pants.',
+      image: 'assets/notown-wide.jpg',
+      icon: 'assets/notown-square.jpg'
+    }
   ],
 
   /* ---- STAGES -------------------------------------------------------- */

@@ -77,6 +77,18 @@ or as [one zip](https://sociussolutions.github.io/emotion26/assets/screenshots/e
   service, so it still appears when there's no signal — which is exactly when
   someone leans over and asks how to get the schedule.
 
+**Announcements**
+
+- Timed messages for everyone, listed in `announcements` at the top of
+  `js/data.js`. Each fires a notification at its `at` time and shows as a
+  banner on the schedule until `until`, with an optional image.
+- **There is no push server**, so a notification only reaches phones with the
+  app open or installed in the background *and* notifications allowed. The
+  banner is the part everyone sees, and it's why an announcement is still
+  useful to someone who opens the app an hour later.
+- A notification more than 30 minutes late is skipped rather than fired — a
+  phone waking at midnight shouldn't buzz about the afternoon.
+
 **Install to the phone**
 
 - A dismissible banner offers to add the app to the home screen. On Android it
